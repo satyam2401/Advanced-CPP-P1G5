@@ -1,0 +1,9 @@
+cmake-build-*/
+.idea/
+*.o
+*.obj
+*.so
+*.exe
+*.log
+*.swp
+.DS_Store
