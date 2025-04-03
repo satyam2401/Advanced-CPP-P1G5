@@ -58,7 +58,8 @@ void MatrixOps::multiply_mm_naive(const double *matrixA, int rowsA, int colsA, c
                 result[colsB * rowA + colB] = dotResult;
             }
         }
-        
+
+        return;
 }
 
 void MatrixOps::multiply_mm_transposed_b(const double *matrixA, int rowsA, int colsA, const double *matrixB_transposed,
