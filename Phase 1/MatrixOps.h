@@ -26,4 +26,4 @@ public:
                                          double *result);
 };
 
-#endif //ADVANCED_CPP_P1G5_MATRIXOPS_H
+#endif ADVANCED_CPP_P1G5_MATRIXOPS_H
