@@ -3,7 +3,7 @@
 #include <cmath>
 #include "../Phase 1/MatrixOps.h"
 
-void benchmark_matrix_vector_multiplication(int rows, int cols, int runs = 5) {
+void benchmark_matrix_vector_multiplication(int rows, int cols, int runs = 25) {
     std::cout << "\n[Benchmark] Size: " << rows << "x" << cols << " | Runs: " << runs << "\n";
 
     auto* matrix = new double[rows * cols];
@@ -16,7 +16,8 @@ void benchmark_matrix_vector_multiplication(int rows, int cols, int runs = 5) {
 
     // Store timings
     double total_time = 0.0;
-    double times[runs];
+    // double times[runs];
+    double times[25];
 
     for (int r = 0; r < runs; ++r) {
         auto start = std::chrono::high_resolution_clock::now();
@@ -52,7 +53,7 @@ void run_benchmarks_matrix_vector_multiplication() {
     benchmark_matrix_vector_multiplication(1000, 1000);   // Large
 }
 
-void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int colsB, int runs = 5) {
+void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int colsB, int runs = 25) {
     std::cout << "\n[Benchmark] SizeA: " << rowsA << "x" << colsA << " | Runs: " << runs << "\n";
     std::cout << "\n[Benchmark] SizeB: " << rowsB << "x" << colsB << " | Runs: " << runs << "\n";
 
@@ -66,7 +67,8 @@ void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int cols
 
     // Store timings
     double total_time = 0.0;
-    double times[runs];
+    // double times[runs];
+    double times[25];
 
     for (int r = 0; r < runs; ++r) {
         auto start = std::chrono::high_resolution_clock::now();
