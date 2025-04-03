@@ -39,8 +39,8 @@ void benchmark_matrix_vector_multiplication(int rows, int cols, int runs = 25) {
     variance /= runs;
     double stddev = std::sqrt(variance);
 
-    std::cout << "Average Time: " << avg << " µs\n";
-    std::cout << "Std Dev:      " << stddev << " µs\n";
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev:      " << stddev << " us\n";
 
     delete[] matrix;
     delete[] vector;
@@ -90,8 +90,8 @@ void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int cols
     variance /= runs;
     double stddev = std::sqrt(variance);
 
-    std::cout << "Average Time: " << avg << " µs\n";
-    std::cout << "Std Dev:      " << stddev << " µs\n";
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev:      " << stddev << " us\n";
 
     delete[] matrixA;
     delete[] matrixB;
