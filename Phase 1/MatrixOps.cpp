@@ -37,5 +37,26 @@ MatrixOps::multiply_mm_naive(const double *matrixA, int rowsA, int colsA, const 
 
 void MatrixOps::multiply_mm_transposed_b(const double *matrixA, int rowsA, int colsA, const double *matrixB_transposed,
                                          int rowsB, int colsB, double *result) {
+    if (!matrixA || !matrixB_transposed || !result) {
+        std::cerr << "[ERROR] Null pointer passed to multiply_mm_transposed_b.\n";
+        return;
+    }
+
+    if (rowsA <= 0 || colsA <= 0 || rowsB <= 0 || colsB <= 0) {
+        std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+        return;
+    }
+
+    for (int i = 0; i < rowsA; ++i){
+        for (int j = 0; j < colsB; ++j){
+            double temp = 0.0;
+            for (int k = 0; k < colsA; ++k){
+                temp += matrixA[i * colsA + k] * matrixB_transposed[j * rowsB + k];
+            }
+            result[i * colsB + j] = temp;
+        }
+    }
+
+
 
 }
