@@ -1,0 +1,10 @@
+^C:\USERS\JOECO\ONEDRIVE\DOCUMENTS\ALL UCHICAGO STUFF\24-25_YEAR\SPRING 2025\FINM HOMEWORKS\HW_1\ADVANCED-CPP-P1G5\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/joeco/OneDrive/Documents/All UChicago Stuff/24-25_Year/Spring 2025/FINM homeworks/HW_1/Advanced-CPP-P1G5" "-BC:/Users/joeco/OneDrive/Documents/All UChicago Stuff/24-25_Year/Spring 2025/FINM homeworks/HW_1/Advanced-CPP-P1G5/build" --check-stamp-file "C:/Users/joeco/OneDrive/Documents/All UChicago Stuff/24-25_Year/Spring 2025/FINM homeworks/HW_1/Advanced-CPP-P1G5/build/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
