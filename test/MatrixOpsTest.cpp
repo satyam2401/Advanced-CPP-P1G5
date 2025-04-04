@@ -53,6 +53,63 @@ void run_benchmarks_matrix_vector_multiplication() {
     benchmark_matrix_vector_multiplication(1000, 1000);   // Large
 }
 
+void benchmark_matrix_vector_col_major_multiplication(int rows, int cols, int runs = 25) {
+    std::cout << "\n[Benchmark] Column-Major MV | Size: " << rows << "x" << cols << " | Runs: " << runs << "\n";
+
+    auto* matrix = new double[rows * cols];
+    auto* vector = new double[cols];
+    auto* result = new double[rows];
+
+    // Fill matrix and vector with dummy data
+
+    for (int col = 0; col < cols; ++col) {
+        for (int row = 0; row < rows; ++row) {
+            matrix[col * rows + row] = static_cast<double>((col * rows + row) % 10 + 1);
+        }
+    }
+
+    for (int i = 0; i < cols; ++i) {
+        vector[i] = static_cast<double>((i % 5) + 1);
+    }
+
+    // Store timings
+    double total_time = 0.0;
+    double times[25];
+
+    for (int r = 0; r < runs; ++r) {
+        auto start = std::chrono::high_resolution_clock::now();
+        MatrixOps::multiply_mv_col_major(matrix, rows, cols, vector, result);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::micro> duration = end - start;
+        times[r] = duration.count();
+        total_time += times[r];
+    }
+
+    // Compute average
+    double avg = total_time / runs;
+
+    // Compute std deviation
+    double variance = 0.0;
+    for (int r = 0; r < runs; ++r)
+        variance += (times[r] - avg) * (times[r] - avg);
+    variance /= runs;
+    double stddev = std::sqrt(variance);
+
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev:      " << stddev << " us\n";
+
+    delete[] matrix;
+    delete[] vector;
+    delete[] result;
+}
+
+void run_benchmarks_matrix_vector_col_major_multiplication() {
+    benchmark_matrix_vector_col_major_multiplication(10, 10);       // Small
+    benchmark_matrix_vector_col_major_multiplication(500, 500);     // Medium
+    benchmark_matrix_vector_col_major_multiplication(1000, 1000);   // Large
+}
+
 void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int colsB, int runs = 25) {
     std::cout << "\n[Benchmark] SizeA: " << rowsA << "x" << colsA << " | Runs: " << runs << "\n";
     std::cout << "\n[Benchmark] SizeB: " << rowsB << "x" << colsB << " | Runs: " << runs << "\n";

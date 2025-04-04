@@ -27,6 +27,30 @@ void MatrixOps::multiply_mv_row_major(const double *matrix, int rows, int cols, 
 }
 
 void MatrixOps::multiply_mv_col_major(const double *matrix, int rows, int cols, const double *vector, double *result) {
+
+    if (!matrix || !vector || !result) {
+        std::cerr << "[ERROR] Null pointer passed to multiply_mv_col_major.\n";
+        return;
+    }
+
+    if (rows <= 0 || cols <= 0) {
+        std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+        return;
+    }
+
+    // Initialize result array with zeros
+    for (int row = 0; row < rows; ++row) {
+        result[row] = 0.0;
+    }
+
+    // For each column
+    for (int col = 0; col < cols; ++col) {
+        // For each row
+        for (int row = 0; row < rows; ++row) {
+            result[row] += matrix[col * rows + row] * vector[col];
+        }
+    }
+
     return;
 }
 
