@@ -11,7 +11,7 @@ int main() {
     std::cout<<"\nMatrix-Matrix Multiplication (Naive) results:"<<endl;
     run_benchmarks_mm_naive_multiplication();
 
-    std::cout<<"\nCache Locality Benchmark for Column-Major Implementation:"<<endl;
+    std::cout<<"\nCache Locality Benchmarks:"<<endl;
     run_cache_locality_benchmarks();
 
     return 0;
