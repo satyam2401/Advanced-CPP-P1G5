@@ -48,6 +48,38 @@ public:
                                   const double *matrixB, int rowsB, int colsB,
                                   double *result);
 
+    inline static void multiply_mm_naive_inline(const double *matrixA, int rowsA, int colsA, const double *matrixB, 
+                                        int rowsB, int colsB, double *result) {
+
+        if (!matrixA || !matrixB || !result) {
+            std::cerr << "[ERROR] Null pointer passed to multiply_mm_naive.\n";
+        return;
+        }
+                                   
+        if (rowsA <= 0 || colsA <= 0 || rowsB <= 0 || colsB <=0) {
+            std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+        return;
+        }
+       
+        if (colsA != rowsB) {
+            std::cerr << "[ERROR] Invalid Matrix dimensions.\n";
+        return;
+        }
+       
+        // each row of A gets dotted with the corresponding col of B (do not transpose B or make a new one)
+        for (int rowA = 0; rowA < rowsA; ++rowA){
+            for (int colB = 0; colB < colsB; ++colB){
+                double dotResult = 0.0;
+                for (int colA = 0; colA < colsA; ++colA){
+                    dotResult += matrixA[colsA * rowA + colA] * matrixB[colsB * colA + colB];
+
+                }
+            result[colsB * rowA + colB] = dotResult;
+            }
+        }
+    return;
+    };
+
     // Matrix-Matrix Multiplication with Transposed B (both in Row-Major)
     static void multiply_mm_transposed_b(const double *matrixA, int rowsA, int colsA,
                                          const double *matrixB_transposed, int rowsB, int colsB,

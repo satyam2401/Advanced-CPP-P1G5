@@ -239,13 +239,6 @@ void benchmark_matrix_vector_col_major_with_strides(int size, int runs = 10) {
     }
 }
 
-void run_cache_locality_benchmarks() {
-    benchmark_matrix_vector_col_major_with_strides(64);
-    benchmark_matrix_vector_col_major_with_strides(256);
-    benchmark_matrix_vector_col_major_with_strides(512);
-    benchmark_matrix_vector_col_major_with_strides(1024);
-}
-
 void* aligned_alloc(size_t alignment, size_t size) {
     void* ptr = nullptr;
 
@@ -462,15 +455,6 @@ void benchmark_mm_naive_with_strides(int size, int runs = 10) {
 
         auto strided_mm_naive = [padded_rows, stride](const double* matrixA, const double* matrixB, int rowsA, 
                                                         int colsA, int rowsB, int colsB, double* result) {
-            // for (int row = 0; row < rows; ++row) {
-            //     result[row] = 0.0;
-            // }
-
-            // for (int col = 0; col < cols; ++col) {
-            //     for (int row = 0; row < rows; ++row) {
-            //         result[row] += matrix[col * padded_rows + row * stride] * vector[col];
-            //     }
-            // }
 
             for (int rowA = 0; rowA < rowsA; ++rowA){
                 for (int colB = 0; colB < colsB; ++colB){
@@ -515,14 +499,173 @@ void benchmark_mm_naive_with_strides(int size, int runs = 10) {
     }
 }
 
-void run_cache_locality_benchmarks() {
-    benchmark_matrix_vector_col_major_with_strides(64);
-    benchmark_matrix_vector_col_major_with_strides(256);
-    benchmark_matrix_vector_col_major_with_strides(512);
-    benchmark_matrix_vector_col_major_with_strides(1024);
+void multiply_mm_naive_aligned(const double* matrixA, const double* matrixB, 
+                                int rowsA, int colsA, int rowsB, int colsB, double* result) {
+if (!matrixA || !matrixB || !result) {
+std::cerr << "[ERROR] Null pointer passed to multiply_mm_naive_aligned.\n";
+return;
+}
 
-    benchmark_mm_naive_with_strides(64);
-    benchmark_mm_naive_with_strides(256);
-    benchmark_mm_naive_with_strides(512);
-    benchmark_mm_naive_with_strides(1024);
+if (rowsA <= 0 || colsA <= 0 || rowsB<=0 || colsB<=0 || colsA!=rowsB) {
+std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+return;
+}
+
+// Initialize result array with zeros
+for (int rowA = 0; rowA < rowsA; ++rowA) {
+    for (int colB = 0; colB < colsB; ++colB) {
+        result[colsB * (rowA) + (colB)] = 0.0;
+    }
+
+}
+
+for (int rowA = 0; rowA < rowsA; ++rowA){
+    for (int colB = 0; colB < colsB; ++colB){
+        double dotResult = 0.0;
+        for (int colA = 0; colA < colsA; ++colA){
+            dotResult += matrixA[colsA * (rowA) + (colA)] * matrixB[colsB * (colA) + (colB)];
+        }
+        result[colsB * (rowA) + (colB)] = dotResult;
+    }
+}
+}
+
+
+void benchmark_mm_naive_aligned(int rowsA, int colsA, int rowsB, int colsB, int runs = 25) {
+std::cout << "\n[Benchmark] Aligned MM naive | Size: " << rowsA << "x" << colsB << ", " << rowsB << "x" << colsB
+<< " | Alignment: " << ALIGNMENT << " bytes | Runs: " << runs << "\n";
+
+// Allocate aligned memory
+auto matrixA = make_aligned_unique<double>(rowsA * colsA);
+auto matrixB = make_aligned_unique<double>(rowsB * colsB);
+auto result = make_aligned_unique<double>(rowsA * colsB);
+
+// Fill matrix and vector with dummy data
+for (int colA = 0; colA < colsA; ++colA) {
+    for (int rowA = 0; rowA < rowsA; ++rowA) {
+        matrixA.get()[colA * rowsA + rowA] = static_cast<double>(1);
+    }
+}
+
+for (int colB = 0; colB < colsB; ++colB) {
+    for (int rowB = 0; rowB < rowsB; ++rowB) {
+        matrixB.get()[colB * rowsB + rowB] = static_cast<double>(1);
+    }
+}
+
+
+// Store timings
+double total_time = 0.0;
+double times[25];
+
+for (int r = 0; r < runs; ++r) {
+auto start = std::chrono::high_resolution_clock::now();
+
+multiply_mm_naive_aligned(matrixA.get(), matrixB.get(), rowsA, colsA, rowsB, colsB, result.get());
+
+auto end = std::chrono::high_resolution_clock::now();
+
+std::chrono::duration<double, std::micro> duration = end - start;
+times[r] = duration.count();
+total_time += times[r];
+}
+
+// Compute average
+double avg = total_time / runs;
+
+// Compute std deviation
+double variance = 0.0;
+for (int r = 0; r < runs; ++r)
+variance += (times[r] - avg) * (times[r] - avg);
+variance /= runs;
+double stddev = std::sqrt(variance);
+
+std::cout << "Average Time: " << avg << " us\n";
+std::cout << "Std Dev:      " << stddev << " us\n";
+
+std::cout << "MatrixA alignment: "
+<< (reinterpret_cast<uintptr_t>(matrixA.get()) % ALIGNMENT == 0 ? "Aligned" : "Not aligned") << "\n";
+std::cout << "MatrixB alignment: "
+<< (reinterpret_cast<uintptr_t>(matrixB.get()) % ALIGNMENT == 0 ? "Aligned" : "Not aligned") << "\n";
+std::cout << "Result alignment: "
+<< (reinterpret_cast<uintptr_t>(result.get()) % ALIGNMENT == 0 ? "Aligned" : "Not aligned") << "\n";
+}
+
+void benchmark_mm_naive_inline(int rowsA, int colsA, int rowsB, int colsB, int runs = 25) {
+    std::cout << "\n[Inline] Column-Major MV | Size: " << rowsA << "x" << colsA << ", " << rowsB << "x" << colsB
+    << " | Runs: " << runs << "\n";
+
+    auto* matrixA = new double[rowsA * colsA];
+    auto* matrixB = new double[rowsB * colsB];
+    auto* result = new double[rowsA * colsB];
+
+    // Fill matrices with dummy data
+
+    for (int colA = 0; colA < colsA; ++colA) {
+        for (int rowA = 0; rowA < rowsA; ++rowA) {
+            matrixA[colA * rowsA + rowA] = static_cast<double>(1);
+        }
+    }
+
+    for (int colB = 0; colB < colsB; ++colB) {
+        for (int rowB = 0; rowB < rowsB; ++rowB) {
+            matrixB[colB * rowsB + rowB] = static_cast<double>(1);
+        }
+    }
+
+    // Store timings
+    double total_time = 0.0;
+    double times[25];
+
+    for (int r = 0; r < runs; ++r) {
+        auto start = std::chrono::high_resolution_clock::now();
+        MatrixOps::multiply_mm_naive_inline(matrixA, rowsA, colsB, matrixB, rowsB, colsB, result);
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::micro> duration = end - start;
+        times[r] = duration.count();
+        total_time += times[r];
+    }
+
+    // Compute average
+    double avg = total_time / runs;
+
+    // Compute std deviation
+    double variance = 0.0;
+    for (int r = 0; r < runs; ++r)
+        variance += (times[r] - avg) * (times[r] - avg);
+    variance /= runs;
+    double stddev = std::sqrt(variance);
+
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev:      " << stddev << " us\n";
+
+    delete[] matrixA;
+    delete[] matrixB;
+    delete[] result;
+}
+
+void run_benchmarks_mm_naive_aligned() {
+benchmark_mm_naive_aligned(10, 10, 10, 10);       // Small
+benchmark_mm_naive_aligned(500, 500, 500, 500);     // Medium
+benchmark_mm_naive_aligned(1000, 1000, 1000, 1000);   // Large
+}
+
+void run_benchmarks_mm_naive_inline() {
+    benchmark_mm_naive_inline(10, 10, 10, 10);
+    benchmark_mm_naive_inline(500, 500, 500, 500);
+    benchmark_mm_naive_inline(1000, 1000, 1000, 1000);
+}
+
+
+void run_cache_locality_benchmarks() {
+    // benchmark_matrix_vector_col_major_with_strides(64);
+    // benchmark_matrix_vector_col_major_with_strides(256);
+    // benchmark_matrix_vector_col_major_with_strides(512);
+    // benchmark_matrix_vector_col_major_with_strides(1024);
+
+    // benchmark_mm_naive_with_strides(64);
+    // benchmark_mm_naive_with_strides(256);
+    // benchmark_mm_naive_with_strides(512);
+    // benchmark_mm_naive_with_strides(1024);
 }
