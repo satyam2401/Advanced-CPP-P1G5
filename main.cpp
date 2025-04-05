@@ -14,5 +14,8 @@ int main() {
     std::cout<<"\nCache Locality Benchmark for Column-Major Implementation:"<<endl;
     run_cache_locality_benchmarks();
 
+    std::cout << "Running benchmarks for aligned column-major matrix-vector multiplication:\n";
+    run_benchmarks_matrix_vector_col_major_aligned();
+
     return 0;
 }
