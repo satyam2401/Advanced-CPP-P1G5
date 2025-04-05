@@ -54,6 +54,7 @@ void MatrixOps::multiply_mv_col_major(const double *matrix, int rows, int cols, 
     return;
 }
 
+
 void MatrixOps::multiply_mm_naive(const double *matrixA, int rowsA, int colsA, const double *matrixB, int rowsB, int colsB,
                              double *result) {
         if (!matrixA || !matrixB || !result) {
