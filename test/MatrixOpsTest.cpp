@@ -110,6 +110,86 @@ void run_benchmarks_matrix_vector_col_major_multiplication() {
     benchmark_matrix_vector_col_major_multiplication(1000, 1000);   // Large
 }
 
+void benchmark_matrix_vector_col_major_with_strides(int size, int runs = 10) {
+    int strides[] = {1, 2, 4, 8, 16, 32};
+
+    std::cout << "\n[Cache Locality Benchmark] Testing Column-Major MV with different strides\n";
+    std::cout << "Matrix Size: " << size << "x" << size << " | Runs per stride: " << runs << "\n";
+
+    for (int stride_idx = 0; stride_idx < 6; ++stride_idx) {
+        int stride = strides[stride_idx];
+
+        int padded_rows = size * stride;
+        auto* matrix = new double[padded_rows * size];
+        auto* vector = new double[size];
+        auto* result = new double[size];
+
+        for (int i = 0; i < padded_rows * size; ++i) matrix[i] = 0.0;
+
+        for (int col = 0; col < size; ++col) {
+            for (int row = 0; row < size; ++row) {
+                matrix[col * padded_rows + row * stride] = static_cast<double>((col * size + row) % 10 + 1);
+            }
+        }
+
+        for (int i = 0; i < size; ++i) {
+            vector[i] = static_cast<double>((i % 5) + 1);
+        }
+
+        auto strided_mv_col_major = [padded_rows, stride](const double* matrix, int rows, int cols,
+                                                        const double* vector, double* result) {
+            for (int row = 0; row < rows; ++row) {
+                result[row] = 0.0;
+            }
+
+            for (int col = 0; col < cols; ++col) {
+                for (int row = 0; row < rows; ++row) {
+                    result[row] += matrix[col * padded_rows + row * stride] * vector[col];
+                }
+            }
+        };
+
+        double total_time = 0.0;
+        double times[25];
+
+        for (int r = 0; r < runs; ++r) {
+            auto start = std::chrono::high_resolution_clock::now();
+
+            strided_mv_col_major(matrix, size, size, vector, result);
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            std::chrono::duration<double, std::micro> duration = end - start;
+            times[r] = duration.count();
+            total_time += times[r];
+        }
+
+        double avg = total_time / runs;
+
+        double variance = 0.0;
+        for (int r = 0; r < runs; ++r)
+            variance += (times[r] - avg) * (times[r] - avg);
+        variance /= runs;
+        double stddev = std::sqrt(variance);
+
+        std::cout << "Stride: " << stride << " | Average Time: " << avg << " us | Std Dev: " << stddev << " us\n";
+
+        delete[] matrix;
+        delete[] vector;
+        delete[] result;
+    }
+}
+
+void run_cache_locality_benchmarks() {
+    benchmark_matrix_vector_col_major_with_strides(64);
+
+    benchmark_matrix_vector_col_major_with_strides(256);
+
+    benchmark_matrix_vector_col_major_with_strides(512);
+
+    benchmark_matrix_vector_col_major_with_strides(1024);
+}
+
 void benchmark_mm_naive_multiplication(int rowsA, int colsA, int rowsB, int colsB, int runs = 25) {
     std::cout << "\n[Benchmark] SizeA: " << rowsA << "x" << colsA << " | Runs: " << runs << "\n";
     std::cout << "\n[Benchmark] SizeB: " << rowsB << "x" << colsB << " | Runs: " << runs << "\n";
