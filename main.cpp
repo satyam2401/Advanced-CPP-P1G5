@@ -17,5 +17,8 @@ int main() {
     std::cout << "Running benchmarks for aligned column-major matrix-vector multiplication:\n";
     run_benchmarks_matrix_vector_col_major_aligned();
 
+    std::cout << "Running benchmarks for inline function:\n";
+    run_benchmarks_matrix_vector_col_major_multiplication_inline();
+
     return 0;
 }
