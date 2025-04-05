@@ -11,6 +11,9 @@ public:
     static void multiply_mv_row_major(const double *matrix, int rows, int cols,
                                       const double *vector, double *result);
 
+    static void multiply_mv_row_major_optimised(const double *matrix, int rows, int cols,
+                                      const double *vector, double *result);
+
     // Matrix-Vector Multiplication (Column-Major)
     static void multiply_mv_col_major(const double *matrix, int rows, int cols,
                                       const double *vector, double *result);

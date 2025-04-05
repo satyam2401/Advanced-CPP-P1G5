@@ -8,46 +8,69 @@
 void benchmark_matrix_vector_multiplication(int rows, int cols, int runs = 25) {
     std::cout << "\n[Benchmark] Size: " << rows << "x" << cols << " | Runs: " << runs << "\n";
 
+    // Allocate memory
     auto* matrix = new double[rows * cols];
     auto* vector = new double[cols];
-    auto* result = new double[rows];
+    auto* result_baseline = new double[rows];
+    auto* result_optimised = new double[rows];
 
     // Fill matrix and vector with dummy data
     for (int i = 0; i < rows * cols; ++i) matrix[i] = static_cast<double>((i % 10) + 1);
     for (int i = 0; i < cols; ++i) vector[i] = static_cast<double>((i % 5) + 1);
 
-    // Store timings
-    double total_time = 0.0;
-    // double times[runs];
-    double times[25];
+    double times_baseline[25];
+    double times_optimised[25];
+    double total_baseline = 0.0;
+    double total_optimised = 0.0;
 
+    // Benchmark baseline
     for (int r = 0; r < runs; ++r) {
         auto start = std::chrono::high_resolution_clock::now();
-        MatrixOps::multiply_mv_row_major(matrix, rows, cols, vector, result);
+        MatrixOps::multiply_mv_row_major(matrix, rows, cols, vector, result_baseline);
         auto end = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double, std::micro> duration = end - start;
-        times[r] = duration.count();
-        total_time += times[r];
+        times_baseline[r] = duration.count();
+        total_baseline += times_baseline[r];
     }
 
-    // Compute average
-    double avg = total_time / runs;
+    // Benchmark optimised
+    for (int r = 0; r < runs; ++r) {
+        auto start = std::chrono::high_resolution_clock::now();
+        MatrixOps::multiply_mv_row_major_optimised(matrix, rows, cols, vector, result_optimised);
+        auto end = std::chrono::high_resolution_clock::now();
 
-    // Compute std deviation
-    double variance = 0.0;
-    for (int r = 0; r < runs; ++r)
-        variance += (times[r] - avg) * (times[r] - avg);
-    variance /= runs;
-    double stddev = std::sqrt(variance);
+        std::chrono::duration<double, std::micro> duration = end - start;
+        times_optimised[r] = duration.count();
+        total_optimised += times_optimised[r];
+    }
 
-    std::cout << "Average Time: " << avg << " us\n";
-    std::cout << "Std Dev:      " << stddev << " us\n";
+    // Compute averages
+    double avg_baseline = total_baseline / runs;
+    double avg_optimised = total_optimised / runs;
+
+    // Compute standard deviations
+    double var_baseline = 0.0, var_optimised = 0.0;
+    for (int r = 0; r < runs; ++r) {
+        var_baseline += std::pow(times_baseline[r] - avg_baseline, 2);
+        var_optimised += std::pow(times_optimised[r] - avg_optimised, 2);
+    }
+
+    var_baseline /= runs;
+    var_optimised /= runs;
+
+    double stddev_baseline = std::sqrt(var_baseline);
+    double stddev_optimised = std::sqrt(var_optimised);
+
+    std::cout << "[Baseline]   Avg Time: " << avg_baseline << " us | Std Dev: " << stddev_baseline << " us\n";
+    std::cout << "[Optimised]  Avg Time: " << avg_optimised  << " us | Std Dev: " << stddev_optimised  << " us\n";
 
     delete[] matrix;
     delete[] vector;
-    delete[] result;
+    delete[] result_baseline;
+    delete[] result_optimised;
 }
+
 
 void run_benchmarks_matrix_vector_multiplication() {
     benchmark_matrix_vector_multiplication(10, 10);       // Small
