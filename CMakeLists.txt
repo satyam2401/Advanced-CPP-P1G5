@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.29)
-project(Advanced_CPP_P1G5)
+cmake_minimum_required(VERSION 3.10)
+project(MatrixBenchmark)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O2")
 
-add_executable(Advanced_CPP_P1G5 main.cpp
-        "Phase 1/MatrixOps.cpp"
+# Add source files
+add_executable(matrix_benchmark
+        main.cpp
+        Phase\ 1/MatrixOps.cpp
 )

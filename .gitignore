@@ -7,3 +7,6 @@ cmake-build-*/
 *.log
 *.swp
 .DS_Store
+*.pdb
+/build/
+.vscode/
