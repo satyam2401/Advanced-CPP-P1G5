@@ -239,12 +239,12 @@ void benchmark_matrix_vector_col_major_with_strides(int size, int runs = 10) {
     }
 }
 
-void run_cache_locality_benchmarks() {
-    benchmark_matrix_vector_col_major_with_strides(64);
-    benchmark_matrix_vector_col_major_with_strides(256);
-    benchmark_matrix_vector_col_major_with_strides(512);
-    benchmark_matrix_vector_col_major_with_strides(1024);
-}
+// void run_cache_locality_benchmarks() {
+//     benchmark_matrix_vector_col_major_with_strides(64);
+//     benchmark_matrix_vector_col_major_with_strides(256);
+//     benchmark_matrix_vector_col_major_with_strides(512);
+//     benchmark_matrix_vector_col_major_with_strides(1024);
+// }
 
 void* aligned_alloc(size_t alignment, size_t size) {
     void* ptr = nullptr;
@@ -515,6 +515,169 @@ void benchmark_mm_naive_with_strides(int size, int runs = 10) {
     }
 }
 
+void benchmark_mm_transpose(int rowsA, int colsA, int rowsB, int colsB, int runs = 25){
+    std::cout << "\n[Benchmark] Size: " << rowsA << "x" << colsA << " | " << rowsB << "x" << colsB << " | Runs: " << runs << "\n";
+
+    auto* matrixA = new double[rowsA * colsA];
+    auto* matrixB_transpose = new double[colsB * rowsB];
+    auto* result = new double[rowsA * colsB];
+
+    for (int i = 0; i < rowsA * colsA; ++i) matrixA[i] = static_cast<double>((i%10) + 1);
+    for (int i = 0; i < rowsB * colsB; ++i) matrixB_transpose[i] = static_cast<double>((i%10) + 1);
+
+    double total_time = 0.0;
+    double times[runs];
+
+    for (int r = 0; r < runs; ++r) {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        MatrixOps::multiply_mm_transposed_b(matrixA,rowsA,colsA,matrixB_transpose,rowsB,colsB,result);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::micro> duration = end - start;
+        times[r] = duration.count();
+        total_time += times[r];
+    }
+
+    double avg = total_time / runs;
+
+    double variance = 0.0;
+    for (int r = 0; r < runs; ++r)
+        variance += (times[r] - avg) * (times[r] - avg);
+    variance /= runs;
+    double stddev = std::sqrt(variance);
+
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev: " << stddev << " us\n";
+
+    delete[] matrixA;
+    delete[] matrixB_transpose;
+    delete[] result;
+}
+
+void benchmark_mm_transpose_with_strides(int size, int runs = 10){
+    int strides[] = {1,2,4,8,16,32};
+    std::cout << "\n[Cache Locality Benchmark] Testing MM Transposed with different strides\n";
+    std::cout << "Matrix Size: " << size << "x" << size << "| Runs per stride: " << runs << "\n";
+
+    for (int stride_idx = 0; stride_idx < 6; ++stride_idx){
+        int stride = strides[stride_idx];
+        int padded_rows = size * stride;
+
+        auto* matrixA = new double[padded_rows * size];
+        auto* matrixB_T = new double[size * padded_rows];
+        auto* result = new double[padded_rows * size];
+
+        for (int i = 0; i < padded_rows * size; ++i) matrixA[i] = static_cast<double>(1.0);
+        for (int i = 0; i < padded_rows * size; ++i) matrixB_T[i] = static_cast<double>(1.0);
+
+        for (int col = 0; col < size; ++col) {
+            for (int row = 0; row < size; ++row) {
+                matrixA[col * padded_rows + row * stride] = static_cast<double>(1.0);
+                matrixB_T[col * padded_rows + row * stride] = static_cast<double>(1.0);
+            }
+        }
+
+        auto strided_mm_transpose = [padded_rows, stride](double* A, int rowsA, int colsA,double* B_T, int rowsB, int colsB, double* result) {
+            for (int rowA = 0; rowA < rowsA; ++rowA){
+                for (int colB = 0; colB < colsB; ++colB){
+                    double dotResult = 0.0;
+                    for (int colA = 0; colA < colsA; ++colA){
+                        dotResult += A[colsA * (rowsA * stride) + (colA*stride)] * B_T[colsB * (colB * stride) + (colA*stride)];
+                    }
+                    result[colsB * (rowA*stride) + (colB*stride)] = dotResult;
+                }
+            }
+
+        };
+
+        double total_time = 0.0;
+        double times[runs];
+
+        for (int r = 0; r < runs; ++r) {
+            auto start = std::chrono::high_resolution_clock::now();
+
+            strided_mm_transpose(matrixA,padded_rows, size, matrixB_T, padded_rows, size, result);
+
+            auto end = std::chrono::high_resolution_clock::now();
+
+            std::chrono::duration<double, std::micro> duration = end - start;
+            times[r] = duration.count();
+            total_time += times[r];
+        }
+
+        double avg = total_time / runs;
+        
+        double variance = 0.0;
+        for (int r = 0; r < runs; ++r)
+            variance += (times[r] - avg) * (times[r] - avg);
+        variance /= runs;
+        double stddev = std::sqrt(variance);
+
+        std::cout << "Stride: " << stride << " | Average Time: " << avg << " us\n";
+        std::cout << "Stride: " << stride << " | Std Dev: " << stddev << " us\n";
+
+        delete[] matrixA;
+        delete[] matrixB_T;
+        delete[] result;
+    }
+}
+
+void benchmark_mm_transpose_inline(int rowsA, int colsA, int rowsB, int colsB, int runs = 25){
+    std::cout << "\n[Inline Benchmark] Testing MM Transposed with inline functions\n";
+    std::cout << "\n[Benchmark] Size: " << rowsA << "x" << colsA << " | " << rowsB << "x" << colsB << " | Runs: " << runs << "\n";
+
+    auto* matrixA = new double[rowsA * colsA];
+    auto* matrixB_transpose = new double[colsB * rowsB];
+    auto* result = new double[rowsA * colsB];
+
+    for (int i = 0; i < rowsA * colsA; ++i) matrixA[i] = static_cast<double>((i%10) + 1);
+    for (int i = 0; i < rowsB * colsB; ++i) matrixB_transpose[i] = static_cast<double>((i%10) + 1);
+
+    double total_time = 0.0;
+    double times[runs];
+
+    for (int r = 0; r < runs; ++r) {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        MatrixOps::multiply_mm_transposed_b_inline(matrixA,rowsA,colsA,matrixB_transpose,rowsB,colsB,result);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::micro> duration = end - start;
+        times[r] = duration.count();
+        total_time += times[r];
+    }
+
+    double avg = total_time / runs;
+
+    double variance = 0.0;
+    for (int r = 0; r < runs; ++r)
+        variance += (times[r] - avg) * (times[r] - avg);
+    variance /= runs;
+    double stddev = std::sqrt(variance);
+
+    std::cout << "Average Time: " << avg << " us\n";
+    std::cout << "Std Dev: " << stddev << " us\n";
+
+    delete[] matrixA;
+    delete[] matrixB_transpose;
+    delete[] result;
+}
+
+void run_benchmarks_mm_transpose(){
+    benchmark_mm_transpose(10, 10, 10, 10);
+    benchmark_mm_transpose(500, 500, 500, 500);
+    benchmark_mm_transpose(1000, 1000, 1000, 1000);
+}
+
+void run_benchmarks_mm_transpose_inline(){
+    benchmark_mm_transpose_inline(10, 10, 10, 10);
+    benchmark_mm_transpose_inline(500, 500, 500, 500);
+    benchmark_mm_transpose_inline(1000, 1000, 1000, 1000);
+}
+
 void run_cache_locality_benchmarks() {
     benchmark_matrix_vector_col_major_with_strides(64);
     benchmark_matrix_vector_col_major_with_strides(256);
@@ -525,4 +688,10 @@ void run_cache_locality_benchmarks() {
     benchmark_mm_naive_with_strides(256);
     benchmark_mm_naive_with_strides(512);
     benchmark_mm_naive_with_strides(1024);
+
+    benchmark_mm_transpose_with_strides(64);
+    benchmark_mm_transpose_with_strides(256);
+    benchmark_mm_transpose_with_strides(512);
+    benchmark_mm_transpose_with_strides(1024);
 }
+

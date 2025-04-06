@@ -52,6 +52,9 @@ public:
     static void multiply_mm_transposed_b(const double *matrixA, int rowsA, int colsA,
                                          const double *matrixB_transposed, int rowsB, int colsB,
                                          double *result);
-};
 
-#endif ADVANCED_CPP_P1G5_MATRIXOPS_H
+    static void multiply_mm_transposed_b_inline(const double *matrixA, int rowsA, int colsA,
+                                                const double *matrixB_transposed, int rowsB, int colsB,
+                                                double *result);
+};    
+#endif // ADVANCED_CPP_P1G5_MATRIXOPS_H

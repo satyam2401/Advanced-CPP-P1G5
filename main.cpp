@@ -10,6 +10,8 @@ int main() {
     run_benchmarks_matrix_vector_col_major_multiplication();
     std::cout<<"\nMatrix-Matrix Multiplication (Naive) results:"<<endl;
     run_benchmarks_mm_naive_multiplication();
+    std::cout<<"\nMatrix-Matrix Multiplication (Transposed B) results:"<<endl;
+    run_benchmarks_mm_transpose();
 
     std::cout<<"\nCache Locality Benchmarks:"<<endl;
     run_cache_locality_benchmarks();
@@ -19,6 +21,7 @@ int main() {
 
     std::cout << "Running benchmarks for inline function:\n";
     run_benchmarks_matrix_vector_col_major_multiplication_inline();
+    run_benchmarks_mm_transpose_inline();
 
     return 0;
 }

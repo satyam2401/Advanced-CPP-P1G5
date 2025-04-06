@@ -90,5 +90,56 @@ void MatrixOps::multiply_mm_naive(const double *matrixA, int rowsA, int colsA, c
 
 void MatrixOps::multiply_mm_transposed_b(const double *matrixA, int rowsA, int colsA, const double *matrixB_transposed,
                                          int rowsB, int colsB, double *result) {
+    if (!matrixA || !matrixB_transposed || !result) {
+        std::cerr << "[ERROR] Null pointer passed to multiply_mm_transposed_b.\n";
+        return;
+    }
+
+    if (rowsA <= 0 || colsA <= 0 || rowsB <= 0 || colsB <= 0) {
+        std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+        return;
+    }
+
+    for (int i = 0; i < rowsA; ++i) {
+        for (int j = 0; j < colsB; ++j) {
+            double temp = 0.0;
+            for (int k = 0; k < colsA; ++k) {
+                temp += matrixA[i * colsA + k] * matrixB_transposed[j * rowsB + k];
+            }
+            result[i * colsB + j] = temp;
+        }
+    }
+
+
+    return;
+}
+
+inline double multiply_element(const double *matrixA,const double *matrixB, int i, int j, int k, int colsA, int rowsB){
+    return matrixA[colsA * i + k] * matrixB[rowsB * j + k];
+}
+
+void MatrixOps::multiply_mm_transposed_b_inline(const double *matrixA, int rowsA, int colsA, const double *matrixB_transposed,
+                                         int rowsB, int colsB, double *result) {
+    if (!matrixA || !matrixB_transposed || !result) {
+        std::cerr << "[ERROR] Null pointer passed to multiply_mm_transposed_b.\n";
+        return;
+    }
+
+    if (rowsA <= 0 || colsA <= 0 || rowsB <= 0 || colsB <= 0) {
+        std::cerr << "[ERROR] Invalid matrix dimensions.\n";
+        return;
+    }
+
+    for (int i = 0; i < rowsA; ++i) {
+        for (int j = 0; j < colsB; ++j) {
+            double temp = 0.0;
+            for (int k = 0; k < colsA; ++k) {
+                temp += multiply_element(matrixA, matrixB_transposed, i, j, k, colsA, rowsB);
+            }
+            result[i * colsB + j] = temp;
+        }
+    }
+
+
     return;
 }
