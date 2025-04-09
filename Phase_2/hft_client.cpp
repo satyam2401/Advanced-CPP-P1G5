@@ -4,7 +4,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <deque>
 
+#include "socket.h"
 #include "unistd.h"
 #include "netinet/in.h"
 #include "arpa/inet.h"
@@ -17,6 +19,7 @@ using namespace std;
 
 void receiveAndRespond(int socketFd, const string& name) {
     char buffer[BUFFER_SIZE];
+    deque<float> priceHistory;
 
     // Send client name
     send(socketFd, name.c_str(), name.size(), 0);
@@ -41,14 +44,63 @@ void receiveAndRespond(int socketFd, const string& name) {
 
         cout << "📥 Received price ID: " << priceId << ", Value: " << price << endl;
 
-        // Simulate reaction delay
-        this_thread::sleep_for(chrono::milliseconds(100 + rand() % 300));
+        // Part 2: 
+        float currentPrice = price;
 
-        // Send order (price ID)
-        string order = to_string(priceId);
-        send(socketFd, order.c_str(), order.length(), 0);
+        // keep deque of size 3
+        if (priceHistory.size() >= 3){
+            priceHistory.pop_front();
+        }
+        
+        priceHistory.push_back(currentPrice);
 
-        cout << "📤 Sent order for price ID: " << priceId << endl;
+        // detect momentum
+        if (priceHistory.size() == 3) {
+            float a = priceHistory[0];
+            float b = priceHistory[1];
+            float c = priceHistory[2];
+        
+            bool up = (a < b) && (b < c);
+            bool down = (a > b) && (b > c);
+        
+            // do this part.
+            if (up) {
+                cout << "Momentum up! Sending order for price ID " << priceId << endl;
+
+                // Simulate reaction delay
+                this_thread::sleep_for(chrono::milliseconds(10 + rand() % 50));
+
+                // Send order (price ID)
+                string order = to_string(priceId);
+                send(socketFd, order.c_str(), order.length(), 0);
+
+                cout << "📤 Sent order for price ID: " << priceId << endl;
+                
+            } else if (down){
+                // I guess you would short it here...?
+                cout << "Momentum down! Sending order for price ID " << priceId << endl;
+
+                // Simulate reaction delay
+                this_thread::sleep_for(chrono::milliseconds(10 + rand() % 50));
+
+                // Send order (price ID)
+                string order = to_string(priceId);
+                send(socketFd, order.c_str(), order.length(), 0);
+
+                cout << "📤 Sent order for price ID: " << priceId << endl;
+            } else {
+               cout << "No momentum. Ignoring price ID " << priceId << endl; 
+            }
+        }
+
+        // // Simulate reaction delay
+        // this_thread::sleep_for(chrono::milliseconds(10 + rand() % 50));
+
+        // // Send order (price ID)
+        // string order = to_string(priceId);
+        // send(socketFd, order.c_str(), order.length(), 0);
+
+        // cout << "📤 Sent order for price ID: " << priceId << endl;
     }
 
     #ifdef _WIN32
