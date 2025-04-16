@@ -751,7 +751,7 @@ void benchmark_mm_transpose_with_strides(int size, int runs = 10){
                 for (int colB = 0; colB < colsB; ++colB){
                     double dotResult = 0.0;
                     for (int colA = 0; colA < colsA; ++colA){
-                        dotResult += A[colsA * (rowsA * stride) + (colA*stride)] * B_T[colsB * (colB * stride) + (colA*stride)];
+                        dotResult += A[colsA * (colA * stride) + (colA*stride)] * B_T[rowsB * (colB * stride) + (colB*stride)];
                     }
                     result[colsB * (rowA*stride) + (colB*stride)] = dotResult;
                 }
@@ -939,8 +939,8 @@ void run_cache_locality_benchmarks() {
     // benchmark_mm_naive_with_strides(512);
     // benchmark_mm_naive_with_strides(1024);
 
-    benchmark_mm_transpose_with_strides(64);
-    benchmark_mm_transpose_with_strides(256);
-    benchmark_mm_transpose_with_strides(512);
+    //benchmark_mm_transpose_with_strides(64);
+    //benchmark_mm_transpose_with_strides(256);
+    //benchmark_mm_transpose_with_strides(512);
     benchmark_mm_transpose_with_strides(1024);
 }
