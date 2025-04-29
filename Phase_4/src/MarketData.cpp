@@ -1,9 +1,10 @@
-#include<string>
-#include<chrono>
+// #include "MarketData.h"
+// #include <iostream>
 
-struct alignas(64) MarketData {
-    std::string symbol;
-    double bid_price;
-    double ask_price;
-    std::chrono::high_resolution_clock::time_point timestamp;
-};
+// int main(){
+//     MarketData tick("AAPL", 150.0, 150.2);
+
+//     std::cout   << "Symbol: " << tick.symbol 
+//                 << " , bid: " << tick.bid_price
+//                 << " , ask: " << tick.ask_price << std::endl;
+// }

@@ -1,38 +1,26 @@
-//
-// Created by Satyam Saurabh on 19/04/25.
-//
-
-#ifndef PHASE_3_ORDER_MANAGER_H
-#define PHASE_3_ORDER_MANAGER_H
-
-#include <map>
+#pragma once
+#include "Order.hpp"
+#include <unordered_map>
 #include <memory>
 #include <iostream>
 
-enum class Side { Buy, Sell };
-enum class OrderStatus { New, Filled, PartiallyFilled, Cancelled };
-
-struct MyOrder {
-    int id;
-    Side side;
-    double price;
-    int quantity;
-    int filled = 0;
-    OrderStatus status = OrderStatus::New;
-
-    MyOrder(int id, Side s, double p, int q);
-};
-
-
-class OrderManager {
-    std::map<int, std::unique_ptr<MyOrder>> orders;
-    int next_id = 1;
-
+template<typename PriceType, typename OrderIdType>
+class OrderManager{
 public:
-    int place_order(Side side, double price, int qty);
-    void cancel(int id);
-    void handle_fill(int id, int filled_qty);
-    void print_active_orders() const;
-};
+    static_assert(std::is_integral<OrderIdType>::value, "Order ID must be an integer");
 
-#endif //PHASE_3_ORDER_MANAGER_H
+    using OrderType = Order<PriceType, OrderIdType>;
+    using OrderPtr  = std::shared_ptr<OrderType>;
+
+    OrderManager() = default;
+
+    void create_order(const OrderIdType& id, const std::string& symbol, PriceType price, int quantity, bool is_buy);
+    void fill_order(OrderIdType id, int quantity);
+    void cancel_order(OrderIdType id);
+    void print_all_orders() const;
+
+    OrderPtr get_order(const OrderIdType& id) const;
+
+private:
+    std::unordered_map<OrderIdType, OrderPtr> orders_;
+};
