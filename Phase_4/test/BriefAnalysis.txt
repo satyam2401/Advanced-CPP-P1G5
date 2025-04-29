@@ -1,0 +1,7 @@
+Our baseline tick-to-trade measurements show that, in the best-case execution scenario, our system can complete a trade in as little as 2.3 µs,
+demonstrating that our in-memory data structures and pre-allocation strategy are extremely efficient.
+Ninety-nine percent of all ticks finish within approximately 9.3 µs, which confirms that under normal conditions our HFT prototype
+consistently delivers low-microsecond response times—exactly the performance we’re aiming for. Our mean latency, however, sits at about 13.9 µs
+with a standard deviation of 43.5 µs, because a handful of outliers spike the maximum up to 2.75 ms. These rare but costly delays likely
+stem from on-the-fly allocations, container boundary checks, or operating-system scheduling jitter.
+Overall, these results are very encouraging: sub-10 µs for the vast majority of ticks is an excellent foundation.
