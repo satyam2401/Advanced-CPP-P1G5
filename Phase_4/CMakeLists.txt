@@ -14,3 +14,13 @@ add_executable(hft_app
     src/TradeLogger.cpp
     src/MarketDataFeedSimulator.cpp
 )
+
+add_executable(latency_test
+        src/test_latency.cpp
+        src/MarketData.cpp
+        src/MarketDataFeedSimulator.cpp
+        src/OrderBook.cpp
+        src/OrderManager.cpp
+        src/MatchingEngine.cpp
+        src/TradeLogger.cpp
+)
