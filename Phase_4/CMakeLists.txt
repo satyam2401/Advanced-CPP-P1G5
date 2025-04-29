@@ -12,4 +12,5 @@ add_executable(hft_app
     src/MatchingEngine.cpp
     src/OrderManager.cpp
     src/TradeLogger.cpp
+    src/MarketDataFeedSimulator.cpp
 )
