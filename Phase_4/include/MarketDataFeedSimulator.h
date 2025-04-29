@@ -1,30 +1,28 @@
-# ifndef MarketDataFeedSimulator_H
-# define MarketDataFeedSimulator_H
-
+#pragma once
 
 #include <vector>
 #include <string>
-#include <chrono>
 #include <random>
 #include "MarketData.hpp"
 
-struct alignas(64) MarketData{
-    std::string symbol;
-    double bid_price;
-    double ask_price;
-    std::chrono::high_resolution_clock::time_point timestamp;
-};
-
-class MarketDataFeedSimulator{
-private:
-    std::vector<std::string> symbols_;
-    std::mt19937 rng_;
-    std::uniform_real_distribution<> price_dist_;
-    std::uniform_real_distribution<> uniform_dist_{0.0,1.0};
-
+/**
+ * @brief Simulates a market‐data feed by generating aligned MarketData ticks.
+ */
+class MarketDataFeedSimulator {
 public:
-    MarketDataFeedSimulator(const std::vector<std::string>& symbols);
-    MarketData generate_market_data();
-};
+    /**
+     * @param symbols List of instrument symbols to cycle through
+     */
+    explicit MarketDataFeedSimulator(const std::vector<std::string>& symbols);
 
-#endif
+    /**
+     * @brief Generate one MarketData tick (symbol, bid/ask, timestamp)
+     */
+    MarketData generate_market_data();
+
+private:
+    std::vector<std::string>                    symbols_;
+    std::mt19937                                 rng_;
+    std::uniform_real_distribution<>             price_dist_;
+    std::uniform_real_distribution<>             uniform_dist_{0.0, 1.0};
+};

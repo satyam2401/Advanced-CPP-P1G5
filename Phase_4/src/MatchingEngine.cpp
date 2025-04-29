@@ -1,6 +1,6 @@
-#include "OrderManager.h"
-#include "OrderBook.h"
-#include "MatchingEngine.h"
+#include "OrderManager.hpp"
+#include "OrderBook.hpp"
+#include "MatchingEngine.hpp"
 #include <iostream>
 
 template<typename PriceType, typename OrderIdType>
@@ -41,40 +41,59 @@ MatchingEngine<PriceType, OrderIdType>::match_orders(){
 
 template class MatchingEngine<double, int>;
 
-// int main() {
+/// int main() {
 //     using PriceType = double;
 //     using OrderIdType = int;
-
-//     OrderManager<PriceType, OrderIdType> oms;
-//     OrderBook<PriceType, OrderIdType> order_book;
-//     MatchingEngine<PriceType, OrderIdType> engine(order_book);
-
-//     oms.create_order(1, 100.5, 10, true);    // Buy order
-//     oms.create_order(2, 101.0, 5, true);      // Buy order
-//     oms.create_order(3, 100.0, 20, false);    // Sell order
-//     oms.create_order(4, 103.5, 15, false);    // Sell order
-
-//     auto order1 = oms.get_order(1);
-//     auto order2 = oms.get_order(2);
-//     auto order3 = oms.get_order(3);
-//     auto order4 = oms.get_order(4);
-
-//     order_book.add_order(order1->get_id(), order1->get_price(), order1->get_quantity(), order1->is_buy_order());
-//     order_book.add_order(order2->get_id(), order2->get_price(), order2->get_quantity(), order2->is_buy_order());
-//     order_book.add_order(order3->get_id(), order3->get_price(), order3->get_quantity(), order3->is_buy_order());
-//     order_book.add_order(order4->get_id(), order4->get_price(), order4->get_quantity(), order4->is_buy_order());
-
+//
+//     OrderManager<PriceType,OrderIdType> oms;
+//     OrderBook<PriceType,OrderIdType>   order_book;
+//     MatchingEngine<PriceType,OrderIdType> engine(order_book);
+//
+//     oms.create_order(1, "AAPL", 100.5, 10, true);
+//     oms.create_order(2, "AAPL", 101.0, 5, true);
+//     oms.create_order(3, "AAPL", 100.0, 20, false);
+//     oms.create_order(4, "AAPL", 103.5, 15, false);
+//
+//     auto o1 = oms.get_order(1);
+//     auto o2 = oms.get_order(2);
+//     auto o3 = oms.get_order(3);
+//     auto o4 = oms.get_order(4);
+//
+//     order_book.add_order(o1->get_id(),
+//                          o1->get_symbol(),
+//                          o1->get_price(),
+//                          o1->get_quantity(),
+//                          o1->is_buy_order());
+//
+//     order_book.add_order(o2->get_id(),
+//                          o2->get_symbol(),
+//                          o2->get_price(),
+//                          o2->get_quantity(),
+//                          o2->is_buy_order());
+//
+//     order_book.add_order(o3->get_id(),
+//                          o3->get_symbol(),
+//                          o3->get_price(),
+//                          o3->get_quantity(),
+//                          o3->is_buy_order());
+//
+//     order_book.add_order(o4->get_id(),
+//                          o4->get_symbol(),
+//                          o4->get_price(),
+//                          o4->get_quantity(),
+//                          o4->is_buy_order());
+//
 //     auto trades = engine.match_orders();
-
+//
 //     std::cout << "Matched Trades:\n";
-//     for (const auto& trade : trades) {
-//         std::cout << "BuyOrderID: " << trade.buy_order_id
-//                   << ", SellOrderID: " << trade.sell_order_id
-//                   << ", Price: " << trade.price
-//                   << ", Quantity: " << trade.quantity
-//                   << std::endl;
+//     for (const auto& tr : trades) {
+//         std::cout << "BuyID:" << tr.buy_order_id
+//                   << " SellID:" << tr.sell_order_id
+//                   << " Price:"  << tr.price
+//                   << " Qty:"    << tr.quantity
+//                   << "\n";
 //     }
-
+//
 //     return 0;
 // }
 
