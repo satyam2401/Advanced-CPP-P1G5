@@ -16,7 +16,7 @@ add_executable(hft_app
 )
 
 add_executable(latency_test
-        src/test_latency.cpp
+        test/test_latency.cpp
         src/MarketData.cpp
         src/MarketDataFeedSimulator.cpp
         src/OrderBook.cpp
