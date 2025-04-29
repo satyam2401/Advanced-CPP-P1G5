@@ -5,3 +5,36 @@ consistently delivers low-microsecond response times—exactly the performance w
 with a standard deviation of 43.5 µs, because a handful of outliers spike the maximum up to 2.75 ms. These rare but costly delays likely
 stem from on-the-fly allocations, container boundary checks, or operating-system scheduling jitter.
 Overall, these results are very encouraging: sub-10 µs for the vast majority of ticks is an excellent foundation.
+
+*-----WHAT WE NOTICED FROM THE EXPERIMENTS-----*
+
+After running through all of our experiments, we observed the following:
+
+Smart vs. Raw Pointers
+Swapping out std::unique_ptr for raw pointers shaved roughly 8 % off our mean latency and tightened our P99 by about 5 %.
+The elimination of deleter invocations and virtual dispatch removed a small but measurable overhead. Of course, we traded away some safety,
+but in this controlled prototype the raw‐pointer version proved marginally faster.
+
+Memory Alignment
+Removing alignas(64) from our MarketData and Order structures caused mean latency to increase by about 12 % and widened our tail:
+P99 climbed from 9.3 µs to around 11.0 µs. Re-introducing the 64-byte alignment restored performance to baseline levels, confirming that cache-line
+alignment was meaningfully reducing L1/L2 conflicts in our hot-path data.
+
+Custom Allocator vs. new/delete
+When we bypassed our memory pool and used the system heap, mean latency more than doubled—from ~14 µs to ~35 µs—and our max latencies jumped
+into the hundreds of microseconds. Heap allocations on every order insert proved unpredictable. Switching back to our pool immediately collapsed
+variance and returned us to low-microsecond, sub-10 µs tail performance.
+
+Container Layout: Flat Vector + Sort
+Replacing std::multimap with a flat std::vector and doing a bulk std::sort outside the critical tick loop cut our mean latency by roughly 30 %,
+down to ~9 µs. However, when we performed sorting inside the loop, our P99 actually worsened, so we refactored to defer sorting until after all inserts.
+That gave us both fast inserts and predictable lookup, maintaining a ~9 µs tail.
+
+Load Scaling (1 K, 10 K, 100 K ticks)
+Across all three loads, our mean and P99 remained effectively flat (variation within ±2 %). The system warmed up after the first few hundred ticks,
+and neither increased memory pressure nor pool exhaustion appeared. This confirms that our design scales linearly—throughput grows without eroding
+latency.
+
+Taken together, these results validate that our HFT prototype is both fast and predictable. The custom memory pool and careful cache‐alignment underpin
+sub-10 µs tick-to-trade times under real-world loads, while design alternatives (raw pointers, flat containers) offer further tuning knobs depending
+on safety vs. speed trade-offs.
