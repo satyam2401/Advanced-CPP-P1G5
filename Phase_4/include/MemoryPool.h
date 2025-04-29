@@ -8,6 +8,7 @@
 template <typename T>
 class MemoryPool {
     struct Slot {
+
         alignas(alignof(T)) unsigned char data[sizeof(T)];
     };
 
