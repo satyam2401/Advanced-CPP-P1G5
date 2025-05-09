@@ -61,9 +61,11 @@ class OptimizedOrderBook {
     int orderCounter = 0;
     int oldestOrder = 0;
     size_t size = 0;
-    std::atomic<int> orderCount{0};
+    // std::atomic<int> orderCount{0};
 
 public:
+    OptimizedOrderBook(){}
+
     OptimizedOrderBook(size_t size) {
         orderPool.reserve(size); 
         this->size = size;
@@ -93,9 +95,9 @@ public:
         }
     }
 
-    void addAtomicOrder() {
-        this->orderCount.fetch_add(1, std::memory_order_relaxed);
-    }
+    // void addAtomicOrder() {
+    //     this->orderCount.fetch_add(1, std::memory_order_relaxed);
+    // }
 };
 
 void testAddOrder() {
@@ -141,30 +143,64 @@ void stressTestOpt(OptimizedOrderBook& book, int numOrders) {
 int main(){
 
     const int testReps = 5;
-    size_t testSizes[testReps] = {1000, 5000, 10000, 50000, 100000};
+    size_t testSizes[testReps] = {100000, 500000, 1000000, 5000000, 10000000};
     double testTimesU[testReps];
     double testTimesO[testReps];
 
-    for (int i=0; i < 5; i++){
+    std::vector<OptimizedOrderBook> OptBooks;
+
+    for (int i=0; i < testReps; i++){
     OrderBook unOptBook = OrderBook();
-    OptimizedOrderBook optBook = OptimizedOrderBook(testSizes[i]);
+    OptBooks.push_back(OptimizedOrderBook(testSizes[i]));
 
+    int numRuns = 1;
+    // any number greater than 1 throws error
 
-    auto startU = std::chrono::high_resolution_clock::now();
-    stressTestUnopt(unOptBook, 10);
-    auto endU = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsedU = endU - startU;
-    testTimesU[i] = elapsedU.count();
+    // "warm start"
+    // stressTestUnopt(unOptBook, 10);
+    
 
-    auto startO = std::chrono::high_resolution_clock::now();
-    stressTestOpt(optBook, 10);
-    auto endO = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsedO = endO - startO;
-    testTimesO[i] = elapsedO.count();
+    double unOptAvg = 0;
+    for (int i=0; i < numRuns; i++){
+        auto startU = std::chrono::high_resolution_clock::now();
+        stressTestUnopt(unOptBook, testSizes[i]);
+        auto endU = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsedU = endU - startU;
+        
+        unOptAvg += elapsedU.count();
+    };
+    testTimesU[i] = (unOptAvg / numRuns);
+
+    double optAvg = 0;
+    for (int i=0; i < numRuns; i++){
+        auto startO = std::chrono::high_resolution_clock::now();
+        stressTestOpt(OptBooks[i], testSizes[i]);
+        auto endO = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsedO = endO - startO;
+
+        optAvg += elapsedO.count();
+    };
+    testTimesO[i] = (optAvg / numRuns);
+
     };
     
-    std::cout << "Execution times (Unoptimized): " << testTimesU << " seconds" << std::endl;
-    std::cout << "Execution times (Optimized): " << testTimesO << " seconds" << std::endl;
+    std::cout << "Execution times (Unoptimized): ";
+    for (int i=0; i < testReps; i++){
+        // std::cout << "size " << testSizes[i] << ": ";
+        std::cout << testTimesU[i] << ", ";
+    };
+    std::cout << "\b\b seconds "<< std::endl;
+
+        std::cout << "Execution times (Optimized): ";
+    for (int i=0; i < testReps; i++){
+        // std::cout << "size " << testSizes[i] << ": ";
+        std::cout << testTimesO[i] << ", ";
+    };
+    std::cout << "\b\b seconds "<< std::endl;
 
     return 0;
 };
+
+// base
+// Execution times (Unoptimized): 0.0046684, 1.87e-05, 1.61e-05, 1.63e-05, 1.63e-05 seconds 
+// Execution times (Unoptimized): 1.4e-05, 1.12e-05, 1.07e-05, 1.08e-05, 1.09e-05 seconds
