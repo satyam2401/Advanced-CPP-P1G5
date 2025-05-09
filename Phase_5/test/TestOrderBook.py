@@ -9,3 +9,6 @@ plt.ylabel("Execution Time (seconds)")
 plt.title("HFT Order Book Performance")
 plt.grid()
 plt.show()
+
+# Execution times (Unoptimized): 0.0046684, 1.87e-05, 1.61e-05, 1.63e-05, 1.63e-05 seconds 
+# Execution times (Unoptimized): 1.4e-05, 1.12e-05, 1.07e-05, 1.08e-05, 1.09e-05 seconds
