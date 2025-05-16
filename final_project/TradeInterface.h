@@ -7,14 +7,20 @@ using namespace std;
 
 // do I/o
 class TradeInterface{
-    string header;
-    string challenge_id;
-    string ticker;
-    string submitted_bid;
-    string submitted_ask;
-    string client_name;
+    public:
 
-    string getSecurity(){}
+    string header = "CHALLENGE_RESPONSE"; // 18
+    string challenge_id; // 4
+    string ticker; // 7: SECXXXX 
+    string submitted_bid; // 7: XX.XXXX
+    string submitted_ask; // 7: XX.XXXX
+    string client_name = "Group5"; // 6
 
-    void submitResponse(){}
+    TradeInterface(int port, int packetSize){}
+
+    string *getSecurities(){}
+
+    void getChallenge(){}
+
+    void submitResponse(string submittedBid, string submittedAsk){}
 };

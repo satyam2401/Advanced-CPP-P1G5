@@ -7,6 +7,10 @@ using namespace std;
 
 
 class Buffer{
+    public:
+    // There should not be data races here. Thus, there should be no need for atomic.
+    // I have designed this such that no threads are writing to the same place in memory.
+
     int packetSize;
     int maxID;
     int startingIndex = 0;
@@ -19,7 +23,8 @@ class Buffer{
     thread clearer;
     // Xi's laptop M3 Pro has 12 cores - use 5 for mapping
     // this should be a number s.t. packetSize (10) / numCoresAvailable is an integer.
-    const int numCoresAvailable = 5;
+    // currently testing with the OS task switching, not using join().
+    const int numCoresAvailable = 10;
     thread *mapperStorage = new thread[this->numCoresAvailable];
 
 Buffer(int packetSize, int maxID){
@@ -44,22 +49,30 @@ void receiveValueHandler(string *values[]){
     // don't know if the detach is necessary.
     clearer.detach();
 
-    for (int j=0; j < this->packetSize; j+=this->numCoresAvailable){
-        // initialize 5 mappers
-        for (int i=0; i < this->numCoresAvailable; i++){
-            this->mapperStorage[i + j] = thread(receiveValue, values[i]);
-        }
+    // joining manually
+    // for (int j=0; j < this->packetSize; j+=this->numCoresAvailable){
+    //     // initialize 5 mappers
+    //     for (int i=0; i < this->numCoresAvailable; i++){
+    //         this->mapperStorage[i + j] = thread(receiveValue, values[i]);
+    //     }
 
-        // join the mappers back 
-        for (int i=0; i < this->numCoresAvailable; i++){
-            this->mapperStorage[i + j].join();
-        }
+    //     // join the mappers back 
+    //     for (int i=0; i < this->numCoresAvailable; i++){
+    //         this->mapperStorage[i + j].join();
+    //     }
+    // }
+
+    // OS switches tasks
+    for(int j=0; j < this->packetSize; j++){
+        // is detatch() relevant here, if threads are stored in a container on the heap?
+            // they aren't owned by the function due to that, right?
+        this->mapperStorage[j] = thread(receiveValue, values[j]);
+        this->mapperStorage[j].detach();
     }
+    // dont rejoin
 
     // only one clearer should be going at once, but don't disrupt the mappers.
-    clearer.join();
-
-
+    // clearer.join(); // don't think join() works after detach().
 }
 
 void clearValues(){
