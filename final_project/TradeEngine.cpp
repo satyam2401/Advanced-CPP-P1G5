@@ -9,6 +9,8 @@
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
+#include "Buffer.h"
+#include "TradeInterface.h"
 
 // TradeEngine contains the logic for the system
 // input: 10 securities (strings) to parse, with a challenge_ID and a target
