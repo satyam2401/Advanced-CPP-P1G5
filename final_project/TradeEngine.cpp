@@ -100,11 +100,12 @@ int main(){
     while (true){
         // main program loop
 
-        securities = tradeInterface->getSecurities();
+        thread clearer = orderBuffer->clearValuesHandler();
+
+
         // I kinda want to detach these so the challenge can be gotten at the same time-
             // mapper.join() is preventing this, but is this necessary?
             // we need to test this.
-        orderBuffer->receiveValueHandler(&securities);
 
         // If the mappers use all the cores, these tasks will be put on the stack.
             // These will probabaly not complete before all the mappers are done - expected.

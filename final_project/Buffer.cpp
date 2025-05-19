@@ -24,10 +24,11 @@ class Buffer{
     // Xi's laptop M3 Pro has 12 cores - use 5 for mapping
     // this should be a number s.t. packetSize (10) / numCoresAvailable is an integer.
     // currently testing with the OS task switching, not using join().
-    const int numCoresAvailable = 10;
+    const int numCoresAvailable = 8;
     thread *mapperStorage = new thread[this->numCoresAvailable];
 
 Buffer(int packetSize, int maxID){
+    // packetSize is max 1000
     this->packetSize = packetSize;
     this->maxID = maxID;
     string *map = new string[maxID];
@@ -43,11 +44,7 @@ void receiveValue(string value, int index){
     this->map[secIdx] = this->buffer[startingIndex + index];
 }
 
-void receiveValueHandler(string *values[]){
-    // when each packet is received, clear the last one in the background
-    thread clearer = thread(clearValues);
-    // don't know if the detach is necessary.
-    clearer.detach();
+void receiveValueHandler(string *values[], int numValues){
 
     // joining manually
     // for (int j=0; j < this->packetSize; j+=this->numCoresAvailable){
@@ -62,8 +59,8 @@ void receiveValueHandler(string *values[]){
     //     }
     // }
 
-    // OS switches tasks
-    for(int j=0; j < this->packetSize; j++){
+    // OS switches tasks - but won't for 8 cores 
+    for(int j=0; j < numValues; j++){
         // is detatch() relevant here, if threads are stored in a container on the heap?
             // they aren't owned by the function due to that, right?
         this->mapperStorage[j] = thread(receiveValue, values[j]);
@@ -75,6 +72,13 @@ void receiveValueHandler(string *values[]){
     // clearer.join(); // don't think join() works after detach().
 }
 
+thread clearValuesHandler(){
+        thread clearer = thread(clearValues);
+        // don't know if the detach is necessary.
+        clearer.detach();
+
+        return clearer;
+}
 void clearValues(){
     // only one thread needs to be clearing
     // this is the one that updates the startingIndex

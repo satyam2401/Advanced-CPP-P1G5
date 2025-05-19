@@ -29,7 +29,9 @@ Buffer(int packetSize, int maxID){}
 
 void receiveValue(string value, int index){}
 
-void receiveValueHandler(string *values[]){}
+void receiveValueHandler(string *values[], int numValues){}
+
+thread clearValuesHandler(){}
 
 void clearValues(){}
 
